@@ -11,6 +11,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -22,8 +23,10 @@ import com.maverick.noteapp.model.Note
 import com.maverick.noteapp.screen.NoteScreen
 import com.maverick.noteapp.screen.NoteViewModel
 import com.maverick.noteapp.ui.theme.NoteAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalComposeUiApi
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,8 +35,10 @@ class MainActivity : ComponentActivity() {
             NoteAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    val noteViewModel:NoteViewModel by viewModels()
+                    //val noteViewModel = viewModel<NoteViewModel>() //also works
+                    val noteViewModel = viewModel<NoteViewModel>()
                     NotesApp(noteViewModel)
+
                 }
             }
         }
@@ -43,17 +48,13 @@ class MainActivity : ComponentActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalComposeUiApi
 @Composable
-fun NotesApp(noteViewModel:NoteViewModel = viewModel()){
+fun NotesApp(noteViewModel: NoteViewModel) {
+    val notesList = noteViewModel.noteList.collectAsState().value
 
-    val noteList = noteViewModel.getAllNotes()
+    NoteScreen(notes = notesList,
+        onRemoveNote = { noteViewModel.removeNote(it) },
+        onAddNote = { noteViewModel.addNote(it) })
 
-    NoteScreen(notes = noteList,
-        onRemoveNote = {
-            noteViewModel.removeNote(it)
-        },
-        onAddNote = {
-          noteViewModel.addNote(it)
-        })
 }
 
 
@@ -64,3 +65,4 @@ fun DefaultPreview() {
 
     }
 }
+
